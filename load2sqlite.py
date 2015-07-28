@@ -1,12 +1,13 @@
 #!/usr/bin/env python2
 
-from pandas import DataFrame, Series
-import pandas as pd
-import numpy as np
 import os
-#from sqlalchemy import create_engine
+import sys
 import sqlite3
 #import ipdb
+
+from pandas import DataFrame, Series
+import pandas as pd
+#from sqlalchemy import create_engine
 
 '''
 Script to clean and load election data to an sqlite database
@@ -16,7 +17,7 @@ From csv files.
 #-----------------------------------------------------------------
 # Constants
 # Dictionary for renaming columns for setting up the schemea
-# Removes MAcrons and spaces never good as field names
+# Removes Macrons and spaces never good as field names
 # for a database.
 #-----------------------------------------------------------------
 HEADER_DICT = {u'Unnamed: 0': u'Suburb',
@@ -112,8 +113,21 @@ def create_insert_query(table_name, df):
                  % (table_name, columns_to_insert, wildcards)
 
 if __name__ == '__main__':
-    dir = 'csv'
-    filter = '.csv'
+    if len(sys.argv) < 3:
+        #print ("Usage: load2sqlite.py directory sqlite_db filter(optional)")
+        dir = 'csv'
+        filter = '.csv'
+        db = 'test.sqlite'
+    elif len(sys.argv) == 3:
+        dir = sys.argv[1]
+        db = sys.argv[2]
+    else:
+        dir = sys.argv[1]
+        db = sys.argv[2]
+        filter = sys.argv[3]
+
+    table_name = 'party'
+
     csv_files = [os.path.join(dir, f) for f in os.listdir(dir) if filter in f]
     appended_data = []
 
@@ -123,18 +137,9 @@ if __name__ == '__main__':
 
     results = pd.concat(appended_data)
 
-    # Do not need a new index dropped as will insert a primary index in the 
-    # sql table
-    #results.reset_index(inplace=True) # Reset the index
-    #results.drop('index', axis=1, inplace=True) # Drop the old index column
-
     # Orginally used sqlalchemy but no problems with primary keys
-    #engine = create_engine('sqlite:///elections2014.sqlite')
-    #results.to_sql('party', engine, if_exists='replace', index_label='id')
-    #engine.dispose() # do not want to rely on the garbage coolection.
-    
-    with sqlite3.connect("test14.sqlite") as con:
-        query = create_table_query('party', results.columns[3:])
+    with sqlite3.connect(db) as con:
+        query = create_table_query(table_name, results.columns[3:])
         con.execute(query)
         con.commit()
 
@@ -143,6 +148,6 @@ if __name__ == '__main__':
         data = tuple(output)
 
         # Write it to the database
-        con.executemany(create_insert_query('party', results), data)
+        con.executemany(create_insert_query(table_name, results), data)
         con.commit()
 
