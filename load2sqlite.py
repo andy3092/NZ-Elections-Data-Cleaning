@@ -10,8 +10,10 @@ import pandas as pd
 #from sqlalchemy import create_engine
 
 '''
-Script to clean and load election data to an sqlite database
-From csv files.
+Script to clean and load election data to an sqlite database from csv files. 
+Takes a dircetory and will process all the csv files in the directory. 
+Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] 
+       [FILTER](optional)
 '''
 
 #-----------------------------------------------------------------
@@ -113,20 +115,26 @@ def create_insert_query(table_name, df):
                  % (table_name, columns_to_insert, wildcards)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        #print ("Usage: load2sqlite.py directory sqlite_db filter(optional)")
-        dir = 'csv'
-        filter = '.csv'
-        db = 'test.sqlite'
-    elif len(sys.argv) == 3:
-        dir = sys.argv[1]
-        db = sys.argv[2]
-    else:
-        dir = sys.argv[1]
-        db = sys.argv[2]
-        filter = sys.argv[3]
-
+    # Default variables
+    filter = '.csv'
+    db = 'test.sqlite'
     table_name = 'party'
+    dir = 'csv'
+
+    #if len(sys.argv) < 4:
+        #print ("Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] [FILTER](optional)")
+        #dir = 'csv'
+        #filter = '.csv'
+        #db = 'test.sqlite'
+    if len(sys.argv) == 4:
+        dir = sys.argv[1]
+        table_name = sys.argv[2]
+        db = sys.argv[3]
+    elif len(sys.argv) > 4:
+        dir = sys.argv[1]
+        table_name = sys.argv[2]
+        db = sys.argv[3]
+        filter = sys.argv[4]
 
     csv_files = [os.path.join(dir, f) for f in os.listdir(dir) if filter in f]
     appended_data = []
@@ -148,6 +156,8 @@ if __name__ == '__main__':
         data = tuple(output)
 
         # Write it to the database
+        # Possibly need to check if there is any data in the table
+        # first need to tinker with the sql query.
         con.executemany(create_insert_query(table_name, results), data)
         con.commit()
 
