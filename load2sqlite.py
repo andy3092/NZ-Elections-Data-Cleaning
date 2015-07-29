@@ -3,6 +3,7 @@
 import os
 import sys
 import sqlite3
+import glob
 #import ipdb
 
 from pandas import DataFrame, Series
@@ -116,15 +117,15 @@ def create_insert_query(table_name, df):
 
 if __name__ == '__main__':
     # Default variables
-    filter = '.csv'
+    filter = '*.csv'
     db = 'test.sqlite'
     table_name = 'party'
     dir = 'csv'
 
-    #if len(sys.argv) < 4:
-        #print ("Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] [FILTER](optional)")
+    if len(sys.argv) < 4:
+        print ("Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] [FILTER](optional)")
         #dir = 'csv'
-        #filter = '.csv'
+        #filter = '*.csv'
         #db = 'test.sqlite'
     if len(sys.argv) == 4:
         dir = sys.argv[1]
@@ -136,7 +137,7 @@ if __name__ == '__main__':
         db = sys.argv[3]
         filter = sys.argv[4]
 
-    csv_files = [os.path.join(dir, f) for f in os.listdir(dir) if filter in f]
+    csv_files = glob.glob(os.path.join(dir, filter))
     appended_data = []
 
     for csv_file in csv_files:
