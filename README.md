@@ -3,18 +3,19 @@ Some scripts to download and clean New Zealand election results data and load th
 
 At the moment downloads and cleans up the 2014 election party vote results.
 
-# TODO
+### TODO
 Add some proper commandline arguments for the scrips 
 instead of hardcoding options in. 
 e.g. year you want to download and clean, where you want to save files, 
 output file names etc.
 
-Split off the Maori electrates into a seprate table
+Split off the Maori electrates into a seprate table last 7 files.
 
-Add other parties to the dictionary from other years for renaming the columns
+Place the paries list dictionary in a csv file and load it up into a dictionary
 
-Fix up the download script
-
+Fix up the download script - add some options.
+Be able to split Maori and general roll 
+Have an otion to feed a URL.
 
 
 
