@@ -4,7 +4,7 @@ import os
 import sys
 import sqlite3
 import glob
-import ipdb
+#import ipdb
 
 from pandas import DataFrame, Series
 import pandas as pd
@@ -19,50 +19,16 @@ Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE]
 
 #-----------------------------------------------------------------
 # Constants
-# Dictionary for renaming columns for setting up the schemea
-# Removes Macrons and spaces never good as field names
-# for a database.
-# Need to write this out as a csv file and read it in.
+# Dictionary is loaded from a csv file this is used 
+# for renaming columns and setting up the sqlite schemea
+# Macrons and spaces are removed as they are never good as 
+# for field names in a database.
+# Load the csv as a pandas data frame then convert it to a 
+# dictionary to deal with utf-8 encoding 
 #-----------------------------------------------------------------
-HEADER_DICT = {u'Unnamed: 0': u'Suburb',
-               u'Unnamed: 1': u'Voting_Place', 
-               u'ACT New Zealand': u'ACT',
-               u'Aotearoa Legalise Cannabis Party': u'ALCP', 
-               u'Ban1080': u'Ban1080', 
-               u'Conservative': u'Conservative',
-               u'Democrats for Social Credit': u'Social_Credit', 
-               u'Focus New Zealand': u'Focus_NZ', 
-               u'Green Party': u'Green_Party',
-               u'Internet MANA': u'Internet_Mana',
-               u'Labour Party': u'Labour',
-               u'M\u0101ori Party': u'Maori_Party',
-               u'National Party': u'National',
-               u'New Zealand First Party': u'NZ_First',
-               u'NZ Independent Coalition': u'NZ_Independant',
-               u'The Civilian Party': u'Civilian_Party',
-               u'United Future': u'United_Future',
-               u'United Future New Zealand': u'United_Future',
-               u'Total Valid Party Votes': u'Valid',
-               u'Informal Party Votes': u'Informal',
-               u'Family Party': u'Family_Party',
-               u'Jim Anderton\'s Progressive' : u'Progressive',
-               u'New Zealand Pacific Party' : u'NZ_Pacific',
-               u'RAM - Residents Action Movement' : u'RAM',
-               u'The Republic of New Zealand Party' : u'Republic_NZ_Party',
-               u'The Bill and Ben Party' : u'Bill_and_Ben_Party',
-               u'Workers Party' : u'Workers_Party',
-               u'Christian Heritage' : u'Christian_Heritage',
-               u'OneNZ Party' : u'OneNZ_Party',
-               u'Outdoor Rec. NZ' : u'Outdoor_Rec_NZ',
-               u'Progressive Coalition' : u'Progressive_Coalition',
-               u'Mana Maori' : u'Mana',
-               u'Legalise Cannabis' : u'Legalise_Cannabis',
-               u'99 MP Party' : u'Nighty_Nine_MP_Party',
-               u'Destiny New Zealand' : u'Destiny_NZ',
-               u'New Zealand Family Rights Protection Party' : u'NZ_Family_Rights_Protection_Party',
-               u'Direct Democracy Party' : u'Direct_Democracy'}
-
-ipdb.set_trace()
+headerdf = pd.read_csv('header_lookup.csv', encoding='UTF-8', header=None)
+headerdf = headerdf.set_index(headerdf[0])
+HEADER_DICT = headerdf.to_dict()[1]
 
 def load_csv (file_name):
     '''
