@@ -22,6 +22,7 @@ Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE]
 # Dictionary for renaming columns for setting up the schemea
 # Removes Macrons and spaces never good as field names
 # for a database.
+# Need to write this out as a csv file and read it in.
 #-----------------------------------------------------------------
 HEADER_DICT = {u'Unnamed: 0': u'Suburb',
                u'Unnamed: 1': u'Voting_Place', 
@@ -41,7 +42,24 @@ HEADER_DICT = {u'Unnamed: 0': u'Suburb',
                u'The Civilian Party': u'Civilian_Party',
                u'United Future': u'United_Future',
                u'Total Valid Party Votes': u'Valid',
-               u'Informal Party Votes': u'Informal'}
+               u'Informal Party Votes': u'Informal',
+               u'Family Party': u'Family_Party',
+               u'Jim Anderton\'s Progressive', 'Progressive',
+               u'New Zealand Pacific Party' : u'NZ_Pacific',
+               u'RAM - Residents Action Movement' : u'RAM',
+               u'The Republic of New Zealand Party' ; u'Republic_NZ_Party',
+               u'The Bill and Ben Party' : u'Bill_and_Ben_Party',
+               u'Workers Party' : u'Workers_Party',
+               u'Christian Heritage' : u'Christian_Heritage',
+               u'OneNZ Party' : u'OneNZ_Party',
+               u'Outdoor Rec. NZ' : u'Outdoor_Rec_NZ',
+               u'Progressive Coalition' : 'Progressive_Coalition',
+               u'Mana Maori' : 'Mana',
+               u'Legalise Cannabis' : 'Legalise_Cannabis',
+               u'99 MP Party', 'Nighty_Nine_MP_Party',
+               u'Destiny New Zealand' : 'Destiny_NZ',
+               u'New Zealand Family Rights Protection Party' : u'NZ_Family_Rights_Protection_Party',
+               u'Direct Democracy Party' : u'Direct_Democracy'}
 
 def load_csv (file_name):
     '''
@@ -124,9 +142,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 4:
         print ("Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] [FILTER](optional)")
-        #dir = 'csv'
-        #filter = '*.csv'
-        #db = 'test.sqlite'
+        sys.exit()
     if len(sys.argv) == 4:
         dir = sys.argv[1]
         table_name = sys.argv[2]
