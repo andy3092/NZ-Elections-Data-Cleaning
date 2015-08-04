@@ -4,7 +4,7 @@ import os
 import sys
 import sqlite3
 import glob
-#import ipdb
+import ipdb
 
 from pandas import DataFrame, Series
 import pandas as pd
@@ -41,25 +41,28 @@ HEADER_DICT = {u'Unnamed: 0': u'Suburb',
                u'NZ Independent Coalition': u'NZ_Independant',
                u'The Civilian Party': u'Civilian_Party',
                u'United Future': u'United_Future',
+               u'United Future New Zealand': u'United_Future',
                u'Total Valid Party Votes': u'Valid',
                u'Informal Party Votes': u'Informal',
                u'Family Party': u'Family_Party',
-               u'Jim Anderton\'s Progressive', 'Progressive',
+               u'Jim Anderton\'s Progressive' : u'Progressive',
                u'New Zealand Pacific Party' : u'NZ_Pacific',
                u'RAM - Residents Action Movement' : u'RAM',
-               u'The Republic of New Zealand Party' ; u'Republic_NZ_Party',
+               u'The Republic of New Zealand Party' : u'Republic_NZ_Party',
                u'The Bill and Ben Party' : u'Bill_and_Ben_Party',
                u'Workers Party' : u'Workers_Party',
                u'Christian Heritage' : u'Christian_Heritage',
                u'OneNZ Party' : u'OneNZ_Party',
                u'Outdoor Rec. NZ' : u'Outdoor_Rec_NZ',
-               u'Progressive Coalition' : 'Progressive_Coalition',
-               u'Mana Maori' : 'Mana',
-               u'Legalise Cannabis' : 'Legalise_Cannabis',
-               u'99 MP Party', 'Nighty_Nine_MP_Party',
-               u'Destiny New Zealand' : 'Destiny_NZ',
+               u'Progressive Coalition' : u'Progressive_Coalition',
+               u'Mana Maori' : u'Mana',
+               u'Legalise Cannabis' : u'Legalise_Cannabis',
+               u'99 MP Party' : u'Nighty_Nine_MP_Party',
+               u'Destiny New Zealand' : u'Destiny_NZ',
                u'New Zealand Family Rights Protection Party' : u'NZ_Family_Rights_Protection_Party',
                u'Direct Democracy Party' : u'Direct_Democracy'}
+
+ipdb.set_trace()
 
 def load_csv (file_name):
     '''
