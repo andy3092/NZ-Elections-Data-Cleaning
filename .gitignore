@@ -61,5 +61,4 @@ target/
 *.sqlite
 *.db
 
-# csv files
-*.csv
+
