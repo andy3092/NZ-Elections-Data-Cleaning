@@ -26,9 +26,9 @@ Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE]
 # Load the csv as a pandas data frame then convert it to a 
 # dictionary to deal with utf-8 encoding 
 #-----------------------------------------------------------------
-headerdf = pd.read_csv('header_lookup.csv', encoding='UTF-8', header=None)
-headerdf = headerdf.set_index(headerdf[0])
-HEADER_DICT = headerdf.to_dict()[1]
+headerdf = pd.read_csv('header_lookup.csv', encoding='UTF-8', 
+                       index_col='from_csv')
+HEADER_DICT = headerdf.to_dict()['header_name']
 
 def load_csv (file_name):
     '''
@@ -43,7 +43,8 @@ def load_csv (file_name):
     #-----------------------------------------------------------------
     # Skip first two rows and the last 18 lines of the file
     #-----------------------------------------------------------------
-    df = pd.read_csv(file_name, skiprows=2, skipfooter=18, encoding='UTF-8')
+    df = pd.read_csv(file_name, skiprows=2, skipfooter=18, encoding='UTF-8', 
+                     engine='python')
 
     #-----------------------------------------------------------------
     # Rename the columns
