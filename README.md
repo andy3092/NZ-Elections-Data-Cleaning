@@ -1,21 +1,15 @@
 # NZ-Elections-Data-Cleaning
 Some scripts to download and clean New Zealand election results data and load them into sqlite.
 
-At the moment downloads and cleans up the 2014 election party vote results.
+At the moment only cleans the 2014 election party vote results.
 
 ### TODO
-Add some proper commandline arguments for the scrips 
-instead of hardcoding options in. 
-e.g. year you want to download and clean, where you want to save files, 
-output file names etc.
+Add commandline arguments for the load2sqlite script.
 
-Split off the Maori electrates into a seprate table last 7 files.
+Split off the Maori electrates into a seprate table last 7 files 
+for the load2sqlite script.
 
-Place the paries list dictionary in a csv file and load it up into a dictionary
-
-Fix up the download script - add some options.
-Be able to split Maori and general roll 
-Have an otion to feed a URL.
+Need some sanity checks to check that the csv files are being read in correctly.
 
 
 
