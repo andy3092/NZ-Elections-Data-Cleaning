@@ -4,7 +4,8 @@ import os
 import sys
 import sqlite3
 import glob
-#import ipdb
+import argparse
+import ipdb
 
 from pandas import DataFrame, Series
 import pandas as pd
@@ -13,8 +14,7 @@ import pandas as pd
 '''
 Script to clean and load election data to an sqlite database from csv files. 
 Takes a dircetory and will process all the csv files in the directory. 
-Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] 
-       [FILTER](optional)
+Usage: load2sqlite.py {YEAR] [TABLE NAME] [SQLITE DATABASE] [FILE1 FILE2 ...]
 '''
 
 #-----------------------------------------------------------------
@@ -104,26 +104,40 @@ def create_insert_query(table_name, df):
                  % (table_name, columns_to_insert, wildcards)
 
 if __name__ == '__main__':
-    # Default variables
-    filter = '*.csv'
-    db = 'test.sqlite'
-    table_name = 'party'
-    dir = 'csv'
 
-    if len(sys.argv) < 4:
-        print ("Usage: load2sqlite.py [DIRECTORY] [TABLE NAME] [SQLITE DATABASE] [FILTER](optional)")
-        sys.exit()
-    if len(sys.argv) == 4:
-        dir = sys.argv[1]
-        table_name = sys.argv[2]
-        db = sys.argv[3]
-    elif len(sys.argv) > 4:
-        dir = sys.argv[1]
-        table_name = sys.argv[2]
-        db = sys.argv[3]
-        filter = sys.argv[4]
+    # Parse the commandline arguments
+    general_description = '''
+    The script is used to parse and clean csv files from the New Zealand 
+    Electoral Commission so they can be loaded into a table in an sqlite 
+    database for use within a GIS. 
+    '''
+    parser = argparse.ArgumentParser(
+        description=general_description)
 
-    csv_files = glob.glob(os.path.join(dir, filter))
+    year_help = 'The year of the election for the data.'
+    parser.add_argument('year',
+                       choices=['2014', '2011', '2008', '2005', '2002'],
+                       help=year_help)
+
+    
+    parser.add_argument('table',
+                        help='output table name for the data')
+
+    parser.add_argument('database',
+                         help='file name of the sqlite database to be used')
+
+    filename_help="""A list of files you want to load into
+    the sqlite database. Wildcards can also be used e.g. *.csv.
+    """
+    parser.add_argument('filenames',  
+                        help=filename_help,
+                        nargs='*')
+
+    args = parser.parse_args()
+    db = args.database
+    table_name = args.table
+    csv_files = args.filenames
+ 
     appended_data = []
 
     for csv_file in csv_files:
