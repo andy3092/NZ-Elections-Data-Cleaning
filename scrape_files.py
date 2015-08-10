@@ -78,8 +78,7 @@ if __name__ == '__main__':
         if not os.path.exists(args.directory):
             os.makedirs(args.directory)
 
-    if args.url:
-        prefix = args.url.rstrip(args.url.split("/")[-1])
+    if args.url:        
         url = args.url
 
     if args.year:
@@ -90,7 +89,7 @@ if __name__ == '__main__':
            url = ('http://www.electionresults.govt.nz/'
                   'electionresults_XXXX/e9/html/e9_part8.html')
            url = url.replace('XXXX', args.year)
-           prefix = url.rstrip(url.split("/")[-1])
+    prefix = url.rstrip(url.split("/")[-1])
 
 
     for link in get_csv_urls(url, prefix):
@@ -103,5 +102,7 @@ if __name__ == '__main__':
             with open(file_name, 'w') as f:
                 f.write(csv_file.read())
                 print(file_name)
+        else:
+            print("%s file exists not downloading file." % (file_name))
 
 
