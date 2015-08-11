@@ -12,8 +12,9 @@ import pandas as pd
 #from sqlalchemy import create_engine
 
 '''
-Script to clean and load election data to an sqlite database from csv files. 
-Takes a dircetory and will process all the csv files in the directory. 
+Script to clean and load New Zealand election party vote results to an sqlite 
+database from csv files. 
+
 Usage: load2sqlite.py {YEAR] [TABLE NAME] [SQLITE DATABASE] [FILE1 FILE2 ...]
 '''
 
@@ -30,11 +31,20 @@ headerdf = pd.read_csv('header_lookup.csv', encoding='UTF-8',
                        index_col='from_csv')
 HEADER_DICT = headerdf.to_dict()['header_name']
 
-def load_csv (file_name):
+def load_csv (file_name, year):
     '''
     Loads and cleans csv files into a pandas data frame
     Ready for writing out to an sqlite database.
     '''
+    if year in ['2014']:
+        skipheader = 2
+        skipfoot = 18
+        special_vote_rows = 5
+    elif year in ['2002']:
+        skipheader = 2
+        skipfoot = 17
+        special_vote_rows = 6
+
     #-----------------------------------------------------------------
     # Get the Electorate Number
     #-----------------------------------------------------------------
@@ -43,8 +53,8 @@ def load_csv (file_name):
     #-----------------------------------------------------------------
     # Skip first two rows and the last 18 lines of the file
     #-----------------------------------------------------------------
-    df = pd.read_csv(file_name, skiprows=2, skipfooter=18, encoding='UTF-8', 
-                     engine='python')
+    df = pd.read_csv(file_name, skiprows=skipheader, skipfooter=skipfoot, 
+                     encoding='UTF-8', engine='python')
 
     #-----------------------------------------------------------------
     # Rename the columns
@@ -64,9 +74,9 @@ def load_csv (file_name):
     df['ElectID'] = electorate_num     
 
     # forward fill the first column 
-    # exclude the last 5 rows as it does not apply
-    last5rows = len(df) - 5
-    df.loc[:last5rows, 'Suburb'] = df['Suburb'].fillna(method='ffill')
+    # exclude the last rows that refer to special votes as they do not apply
+    include_rows = len(df) - special_vote_rows
+    df.loc[:include_rows, 'Suburb'] = df['Suburb'].fillna(method='ffill')
 
     # The Maori electorates have rows that just have a surburb name in them
     # and null values for the votes
@@ -115,7 +125,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=general_description)
 
-    year_help = 'The year of the election for the data.'
+    year_help = '''The year of the election for the data. 
+    The layout for different years varies.'''
     parser.add_argument('year',
                        choices=['2014', '2011', '2008', '2005', '2002'],
                        help=year_help)
@@ -134,7 +145,7 @@ if __name__ == '__main__':
                         help=filename_help,
                         nargs='*')
     
-    parser.add_argument('-a', '--append', action='store_true', 
+    parser.add_argument('-a', '--append', action='store_true',
                         help='append data to an existing table'
                         )
 
@@ -143,13 +154,16 @@ if __name__ == '__main__':
     table_name = args.table
     csv_files = args.filenames
     append = args.append
+    year = args.year
 
     appended_data = []
 
     for csv_file in csv_files:
-        data = load_csv(csv_file)
+        data = load_csv(csv_file, year)
         appended_data.append(data)
-
+    
+    ipdb.set_trace()
+    
     results = pd.concat(appended_data)
 
     # Orginally used sqlalchemy but no problems with primary keys
