@@ -109,7 +109,8 @@ if __name__ == '__main__':
     general_description = '''
     The script is used to parse and clean csv files from the New Zealand 
     Electoral Commission so they can be loaded into a table in an sqlite 
-    database for use within a GIS. 
+    database for use within a GIS. If the table exits in the sqlite
+    database it will get overwritten.
     '''
     parser = argparse.ArgumentParser(
         description=general_description)
@@ -132,12 +133,17 @@ if __name__ == '__main__':
     parser.add_argument('filenames',  
                         help=filename_help,
                         nargs='*')
+    
+    parser.add_argument('-a', '--append', action='store_true', 
+                        help='append data to an existing table'
+                        )
 
     args = parser.parse_args()
     db = args.database
     table_name = args.table
     csv_files = args.filenames
- 
+    append = args.append
+
     appended_data = []
 
     for csv_file in csv_files:
@@ -147,18 +153,22 @@ if __name__ == '__main__':
     results = pd.concat(appended_data)
 
     # Orginally used sqlalchemy but no problems with primary keys
+    # Drop the table first if it exists then recreate an empty table.
     with sqlite3.connect(db) as con:
-        query = create_table_query(table_name, results.columns[3:])
-        con.execute(query)
-        con.commit()
+        if not append:
+            query = "DROP TABLE IF EXISTS %s;" % (table_name)
+            con.execute(query)
+            query = create_table_query(table_name, results.columns[3:])
+            con.execute(query)
+            con.commit()
 
         # Prepear the data from the dataframe
         output = results.itertuples(index=False)
         data = tuple(output)
 
         # Write it to the database
-        # Possibly need to check if there is any data in the table
         # first need to tinker with the sql query.
+        
         con.executemany(create_insert_query(table_name, results), data)
         con.commit()
 
