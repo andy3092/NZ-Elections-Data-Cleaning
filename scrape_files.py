@@ -91,14 +91,19 @@ if __name__ == '__main__':
            url = url.replace('XXXX', args.year)
     prefix = url.rstrip(url.split("/")[-1])
 
-
-    for link in get_csv_urls(url, prefix):
+    for link in get_csv_urls(url, prefix, pattern=args.pattern):
         file_name = link.split("/")[-1]
 
-        # Check the year if it is 2005 then it is in iso-8859-1 later
-        # years are in UTF-8. Set up the encoding for reading and writing
-        if 'results_2005' in url:
+        # 2002, 2005 are in iso-8859-1 later
+        # 2008 uses windows-1252
+        # years 2011 and 2014 are in UTF-8. 
+        # Set up the encoding for reading and writing
+        year_check = ['results_2005', 'results_2002']
+
+        if any(x in url for x in year_check):
             source_encoding = 'iso-8859-1'
+        elif 'results_2008' in url:
+            source_encoding = 'windows-1252'
         else:
             source_encoding = 'UTF-8'
         target_encoding = 'UTF-8'
