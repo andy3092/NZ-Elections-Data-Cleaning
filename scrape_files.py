@@ -9,7 +9,8 @@ from urllib2 import urlopen
 from lxml.html import parse
 
 """
-Srapes a url for links to files based on a glob pattern and downloads them.
+Srapes a url for links to files based on a glob pattern and downloads them and
+encodes them to UTF-8 so they can easily be handled for importing into sqlite.
 """
 
 def get_csv_urls(url, prefix=None, pattern='*party_[0-9]*.csv'):
@@ -18,8 +19,7 @@ def get_csv_urls(url, prefix=None, pattern='*party_[0-9]*.csv'):
     three arguments url, prefix and file_type
     Parameters
     url - to open the page where the csv file links are
-    prefix - prefix to add to the links collected in case of relative path names
-             default is None
+    year - of general election 2002 2005 2008 2011 2014 
     pattern - glob pattern for files you want to download e.g. *party_??.csv
     """
     parsed = parse(urlopen(url))
@@ -39,8 +39,9 @@ if __name__ == '__main__':
     general_description = '''
     The script is used to download New Zealand election results 
     form the New Zealand Electrol Commission http://www.elections.org.nz/.
-    A URL or a year of the webpage or a year can be entered which will use 
-    a predefined URL for the results
+    A URL of the webpage or a year of a general election
+    can be entered which will use a predefined URL for the results.
+    Files are encoded to UTF-8 so they can easily be loaded into sqlite
     '''
     parser = argparse.ArgumentParser(
         description=general_description)
