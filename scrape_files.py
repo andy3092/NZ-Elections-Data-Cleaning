@@ -95,12 +95,21 @@ if __name__ == '__main__':
     for link in get_csv_urls(url, prefix):
         file_name = link.split("/")[-1]
 
+        # Check the year if it is 2005 then it is in iso-8859-1 later
+        # years are in UTF-8. Set up the encoding for reading and writing
+        if 'results_2005' in url:
+            source_encoding = 'iso-8859-1'
+        else:
+            source_encoding = 'UTF-8'
+        target_encoding = 'UTF-8'
+        
         # Check if the file exists and if not open the url and write the file 
         file_name = os.path.join(args.directory, file_name)
         if not os.path.isfile(file_name):
             csv_file = urlopen(link)
-            with open(file_name, 'w') as f:
-                f.write(csv_file.read())
+            with open(file_name, 'wb') as f:
+                f.write(unicode(csv_file.read(), source_encoding).encode(
+                    target_encoding))
                 print(file_name)
         else:
             print("%s file exists not downloading file." % (file_name))
