@@ -36,14 +36,21 @@ def load_csv (file_name, year):
     Loads and cleans csv files into a pandas data frame
     Ready for writing out to an sqlite database.
     '''
-    if year in ['2014']:
-        skipheader = 2
-        skipfoot = 18
-        special_vote_rows = 5
-    elif year in ['2002']:
-        skipheader = 2
-        skipfoot = 17
-        special_vote_rows = 6
+    year_check = ['2002', '2005', '2008']
+
+    skipheader = 2
+    special_vote_rows = ('BEFORE|Special Votes|Hospital Votes|'
+                         'Votes Allowed|Total')
+
+    if year == '2014':
+        filter = 'Voting places where less than 6 votes were taken'
+    else:
+        filter = 'Polling places where less than 6 votes were taken'
+
+    #elif any(x in year for x in year_check):
+    #    special_vote_rows = 6
+    #else:
+    #    special_vote_rows = 6
 
     #-----------------------------------------------------------------
     # Get the Electorate Number
@@ -53,8 +60,7 @@ def load_csv (file_name, year):
     #-----------------------------------------------------------------
     # Skip first two rows and the last 18 lines of the file
     #-----------------------------------------------------------------
-    df = pd.read_csv(file_name, skiprows=skipheader, skipfooter=skipfoot, 
-                     encoding='UTF-8', engine='python')
+    df = pd.read_csv(file_name, skiprows=skipheader, encoding='UTF-8')
 
     #-----------------------------------------------------------------
     # Rename the columns
@@ -65,28 +71,50 @@ def load_csv (file_name, year):
     #-----------------------------------------------------------------
     # drop the row 'Voting places where less than 6 votes were taken'
     #-----------------------------------------------------------------
-    filter = 'Voting places where less than 6 votes were taken'
     df = df[df['Voting_Place'] != filter]
 
-    #-----------------------------------------------------------------
-    # Add  a column with the electrate number
-    #-----------------------------------------------------------------
-    df['ElectID'] = electorate_num     
-
+    # The Maori electorates have rows that just have a surburb name in them
+    # and null values for the votes will also sort out the footer and 
+    # clean that up
+    df = df.dropna(thresh=10)
+    
     # forward fill the first column 
     # exclude the last rows that refer to special votes as they do not apply
-    include_rows = len(df) - special_vote_rows
+    # note use the - operator to reverse the selection
+    
+    include_rows = len(df[-df['Voting_Place'].str.contains(
+        special_vote_rows)])
     df.loc[:include_rows, 'Suburb'] = df['Suburb'].fillna(method='ffill')
 
-    # The Maori electorates have rows that just have a surburb name in them
-    # and null values for the votes
-    df = df.dropna(thresh=10) 
+    #-----------------------------------------------------------------
+    # Add  a the electrate number
+    # and the electorate name to the dataframe
+    #-----------------------------------------------------------------
+    df['ElectID'] = electorate_num
+    elect = df.tail(1).Voting_Place.iloc[0].replace(' Total', '')
+    df['Electorate'] = elect
+    
+    #---------------------------------------------------------------
+    # Remove the total from the table
+    #---------------------------------------------------------------
+#    ipdb.set_trace()
+    total_votes = df.tail(1)
+    df = df.drop(df.tail(1).index)
 
     #-----------------------------------------------------------------
-    # Reorder the columns so ElecID is the first coulmn
+    # Reorder the columns so ElecID is the first then Electorate
     #-----------------------------------------------------------------
     cols = df.columns.tolist()
-    cols = cols[-1:] + cols[:-1]
+    cols.insert(0, cols.pop())
+    cols.insert(0, cols.pop())
+
+    #-----------------------------------------------------------------
+    # Do a sanity check
+    # cast everything to integers
+    #-----------------------------------------------------------------
+    #df[df.columns[4:]] = df[df.columns[4:]].astype(int)
+    
+
     return df[cols]
 
 def create_table_query(table_name, columns):
@@ -98,8 +126,8 @@ def create_table_query(table_name, columns):
 
     return  """
     CREATE TABLE IF NOT EXISTS """ + table_name + """
-    (ID INTEGER PRIMARY KEY, ElectID INTEGER, Suburb VARCHAR(50), 
-    Voting_Place VARCHAR(255), """ + int_cols + """
+    (ID INTEGER PRIMARY KEY, ElectID INTEGER, Electorate VARCHAR(50), 
+    Suburb VARCHAR(50), Voting_Place VARCHAR(255), """ + int_cols + """
     );
     """
 
@@ -161,8 +189,8 @@ if __name__ == '__main__':
     for csv_file in csv_files:
         data = load_csv(csv_file, year)
         appended_data.append(data)
-    
-    ipdb.set_trace()
+    #print(len(appended_data[0].columns[3:]))
+#    ipdb.set_trace()
     
     results = pd.concat(appended_data)
 
@@ -172,7 +200,7 @@ if __name__ == '__main__':
         if not append:
             query = "DROP TABLE IF EXISTS %s;" % (table_name)
             con.execute(query)
-            query = create_table_query(table_name, results.columns[3:])
+            query = create_table_query(table_name, results.columns[4:])
             con.execute(query)
             con.commit()
 
