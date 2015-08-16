@@ -5,15 +5,15 @@ import sys
 import sqlite3
 import glob
 import argparse
-import ipdb
+#import ipdb
 
 from pandas import DataFrame, Series
 import pandas as pd
 #from sqlalchemy import create_engine
 
 '''
-Script to clean and load New Zealand election party vote results to an sqlite 
-database from csv files. 
+Script to clean and load New Zealand election party vote results to an 
+sqlite database from csv files. 
 
 Usage: load2sqlite.py {YEAR] [TABLE NAME] [SQLITE DATABASE] [FILE1 FILE2 ...]
 '''
@@ -40,17 +40,12 @@ def load_csv (file_name, year):
 
     skipheader = 2
     special_vote_rows = ('BEFORE|Special Votes|Hospital Votes|'
-                         'Votes Allowed|Total')
+                         'Votes Allowed|Total$')
 
     if year == '2014':
         filter = 'Voting places where less than 6 votes were taken'
     else:
         filter = 'Polling places where less than 6 votes were taken'
-
-    #elif any(x in year for x in year_check):
-    #    special_vote_rows = 6
-    #else:
-    #    special_vote_rows = 6
 
     #-----------------------------------------------------------------
     # Get the Electorate Number
@@ -67,6 +62,7 @@ def load_csv (file_name, year):
     # Strip out macrons and spaces as these are no good as field names
     #-----------------------------------------------------------------
     df = df.rename(columns=HEADER_DICT)     
+    vote_columns = df.columns[2:]
 
     #-----------------------------------------------------------------
     # drop the row 'Voting places where less than 6 votes were taken'
@@ -94,13 +90,6 @@ def load_csv (file_name, year):
     elect = df.tail(1).Voting_Place.iloc[0].replace(' Total', '')
     df['Electorate'] = elect
     
-    #---------------------------------------------------------------
-    # Remove the total from the table
-    #---------------------------------------------------------------
-#    ipdb.set_trace()
-    total_votes = df.tail(1)
-    df = df.drop(df.tail(1).index)
-
     #-----------------------------------------------------------------
     # Reorder the columns so ElecID is the first then Electorate
     #-----------------------------------------------------------------
@@ -108,13 +97,23 @@ def load_csv (file_name, year):
     cols.insert(0, cols.pop())
     cols.insert(0, cols.pop())
 
-    #-----------------------------------------------------------------
-    # Do a sanity check
-    # cast everything to integers
-    #-----------------------------------------------------------------
-    #df[df.columns[4:]] = df[df.columns[4:]].astype(int)
-    
+    #---------------------------------------------------------------
+    # Remove the total from the table
+    # Save it first to do a check that all votes tally
+    #---------------------------------------------------------------
+    total_votes = df.tail(1)
+    df = df.drop(df.tail(1).index)
 
+    #-----------------------------------------------------------------
+    # Do a sanity check test that the votes in the dataframe
+    # equal the taotal.
+    #----------------------------------------------------------------
+    error_msg = "Total does not match: %i %s" % (electorate_num, elect)
+    df[vote_columns] = df[vote_columns].astype(int)
+    total_votes[vote_columns] = total_votes[vote_columns].astype(int)
+    assert(all(total_votes[vote_columns] == 
+               df[vote_columns].sum())), error_msg
+    
     return df[cols]
 
 def create_table_query(table_name, columns):
@@ -193,6 +192,7 @@ if __name__ == '__main__':
 #    ipdb.set_trace()
     
     results = pd.concat(appended_data)
+    vote_columns = results.columns[4:]
 
     # Orginally used sqlalchemy but no problems with primary keys
     # Drop the table first if it exists then recreate an empty table.
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         if not append:
             query = "DROP TABLE IF EXISTS %s;" % (table_name)
             con.execute(query)
-            query = create_table_query(table_name, results.columns[4:])
+            query = create_table_query(table_name, vote_columns)
             con.execute(query)
             con.commit()
 
