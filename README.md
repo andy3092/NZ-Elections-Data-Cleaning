@@ -1,9 +1,11 @@
 # NZ-Elections-Data-Cleaning
 
-## Breif Description
+## Brief Description
 These scripts can be used to download and clean New Zealand election results 
 data and load them into sqlite. Use the scrape_files.py to download the files
 and then the load2sqlite.py to load the files into an sqlite database.
+The scripts are designed to work with the election results at each polling
+booth. 
 
 ##scrape_files.py
 
@@ -33,12 +35,23 @@ optional arguments:
                         URL for the votes at each polling booth.
 ```
 
+For Example:
+
+```
+scrape_files.py -y 2011 -d csv2011 '*party_*.csv'
+```
+
+Will download all the csv files for the results at each booth for the year 2011
+and will store it in the directory csv2011. 
+
 ##load2sqlite.py
 
 The script is used to parse and clean csv files from the New Zealand Electoral
 Commission so they can be loaded into a table in an sqlite database for use
 within a GIS. If the table exits in the sqlite database it will get
 overwritten. The -a or --append option can be used to append data to a table.
+The script uses the header_lookup.csv file to rename party names and will
+expect to find it as the same directory as the script.
 ```
 usage: load2sqlite.py [-h] [-a] [-e]
                       {2014,2011,2008,2005,2002} table database
@@ -59,7 +72,13 @@ optional arguments:
   -e, --by_electorate   Groups the data into electorates
 ```
 
+For Example:
+```
+load2sqlite.py 2011 -e electorate2011 elections.sqlite csv2011/*.csv
+```
 
-
+Will collate all the csv files in the directory csv2011 into the table 
+electorate2011 in the database elections.sqlite. Without the -e the table would
+list the results for each polling booth.
 
 
