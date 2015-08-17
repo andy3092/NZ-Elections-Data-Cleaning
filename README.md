@@ -1,11 +1,12 @@
 # NZ-Elections-Data-Cleaning
 
 ## Brief Description
-These scripts can be used to download and clean New Zealand election results 
-data and load them into sqlite. Use the scrape_files.py to download the files
-and then the load2sqlite.py to load the files into an sqlite database.
-The scripts are designed to work with the election results at each polling
-booth. 
+These scripts can be used to download and clean New Zealand election party vote
+results data and load them into sqlite. Use the scrape_files.py to download 
+the files and then the load2sqlite.py to load the files into an sqlite database.
+The scripts are designed to work with the election party results at each polling
+booth. Maybe in the future I may parse the candidate csv files.
+headers.
 
 ##scrape_files.py
 

@@ -14,7 +14,9 @@ Pupose:
 To clean and load New Zealand election party vote results to an 
 sqlite database from a csv files. The script uses the file header_lookup.csv
 to rename the party names and will expect to find it in same directory as 
-this script.
+this script. The script only parses the party vote at this stage.
+Whould not take too much more effort to do the candidate results for each
+electroate. 
 
 usage: load2sqlite.py [-h] [-a] [-e]
                       {2014,2011,2008,2005,2002} table database
