@@ -5,7 +5,6 @@ import sys
 import sqlite3
 import glob
 import argparse
-#import ipdb
 
 from pandas import DataFrame, Series
 import pandas as pd
@@ -31,7 +30,7 @@ headerdf = pd.read_csv('header_lookup.csv', encoding='UTF-8',
                        index_col='from_csv')
 HEADER_DICT = headerdf.to_dict()['header_name']
 
-def load_csv (file_name, year):
+def load_csv (file_name, year, by_electorate=False):
     '''
     Loads and cleans csv files into a pandas data frame
     Ready for writing out to an sqlite database.
@@ -100,8 +99,16 @@ def load_csv (file_name, year):
     #---------------------------------------------------------------
     # Remove the total from the table
     # Save it first to do a check that all votes tally
+    # When returning the results for booths.
     #---------------------------------------------------------------
     total_votes = df.tail(1)
+    if by_electorate:
+        #total_votes = total_votes.drop('Voting_Place', 1)
+        #total_votes = total_votes.drop('Suburb', 1)
+        cols.remove('Voting_Place')
+        cols.remove('Suburb')
+        return total_votes[cols]
+
     df = df.drop(df.tail(1).index)
 
     #-----------------------------------------------------------------
@@ -116,19 +123,21 @@ def load_csv (file_name, year):
     
     return df[cols]
 
-def create_table_query(table_name, columns):
+def create_table_query(table_name, columns, by_electorate=False):
     '''
     Takes a list of columns of votes adds a primary key.
     Returns an sql query string 
     '''
+    if by_electorate:
+        suburb_place = ''
+    else:
+        suburb_place = 'Suburb VARCHAR(50), Voting_Place VARCHAR(255), '
+
     int_cols = ', '.join([col + ' INTEGER' for col in columns])
 
-    return  """
-    CREATE TABLE IF NOT EXISTS """ + table_name + """
-    (ID INTEGER PRIMARY KEY, ElectID INTEGER, Electorate VARCHAR(50), 
-    Suburb VARCHAR(50), Voting_Place VARCHAR(255), """ + int_cols + """
-    );
-    """
+    return  ('CREATE TABLE IF NOT EXISTS %s'
+    '(ID INTEGER PRIMARY KEY, ElectID INTEGER, Electorate VARCHAR(50), %s'
+    '%s);') % (table_name, suburb_place, int_cols)
 
 def create_insert_query(table_name, df):
     '''
@@ -173,8 +182,10 @@ if __name__ == '__main__':
                         nargs='*')
     
     parser.add_argument('-a', '--append', action='store_true',
-                        help='append data to an existing table'
-                        )
+                        help='append data to an existing table')
+
+    parser.add_argument('-e', '--by_electorate', action='store_true',
+                        help='Groups the data into electorates')
 
     args = parser.parse_args()
     db = args.database
@@ -182,17 +193,20 @@ if __name__ == '__main__':
     csv_files = args.filenames
     append = args.append
     year = args.year
+    by_electorate = args.by_electorate
 
     appended_data = []
 
     for csv_file in csv_files:
-        data = load_csv(csv_file, year)
+        data = load_csv(csv_file, year, by_electorate)
         appended_data.append(data)
-    #print(len(appended_data[0].columns[3:]))
-#    ipdb.set_trace()
-    
+
     results = pd.concat(appended_data)
-    vote_columns = results.columns[4:]
+
+    if by_electorate:
+        vote_columns = results.columns[2:]
+    else:
+        vote_columns = results.columns[4:]
 
     # Orginally used sqlalchemy but no problems with primary keys
     # Drop the table first if it exists then recreate an empty table.
@@ -200,7 +214,8 @@ if __name__ == '__main__':
         if not append:
             query = "DROP TABLE IF EXISTS %s;" % (table_name)
             con.execute(query)
-            query = create_table_query(table_name, vote_columns)
+            query = create_table_query(table_name, vote_columns, 
+                                       by_electorate)
             con.execute(query)
             con.commit()
 
